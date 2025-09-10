@@ -1,0 +1,20 @@
+# Dependencies
+/node_modules
+/frontend/node_modules
+
+# Environment variables
+.env
+backend/.env
+
+# Build files
+/build
+/frontend/build
+
+# IDE and OS files
+.DS_Store
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
