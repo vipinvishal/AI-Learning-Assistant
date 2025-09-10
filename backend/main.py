@@ -46,7 +46,9 @@ async def explain_topic(topic: Topic):
     explanation = await ask_groq(prompt, api_key)
     return {"explanation": explanation}
 
-app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="static")
+# Construct the path to the frontend build directory
+frontend_build_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "build"))
+app.mount("/", StaticFiles(directory=frontend_build_path, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
