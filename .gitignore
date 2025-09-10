@@ -8,7 +8,7 @@ backend/.env
 
 # Build files
 /build
-/frontend/build
+
 
 # IDE and OS files
 .DS_Store
