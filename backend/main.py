@@ -35,6 +35,10 @@ async def ask_groq(prompt: str, api_key: str, model="llama3-8b-8192") -> str:
     )
     return response.choices[0].message.content
 
+@app.get("/")
+async def root():
+    return {"message": "AI Learning Assistant Backend is running"}
+
 @app.post("/api/explain")
 async def explain_topic(topic: Topic):
     api_key = os.getenv("GROQ_API_KEY")
