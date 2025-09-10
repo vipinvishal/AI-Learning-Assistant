@@ -1,96 +1,98 @@
 import React, { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './App.css';
+import { ReactMarkdown } from 'react-markdown';
 
 function App() {
-  const [topic, setTopic] = useState('');
-  const [explanation, setExplanation] = useState('');
+  const [prompt, setPrompt] = useState('');
+  const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setExplanation('');
-    setCopied(false);
+    setResponse('');
+    setError('');
 
     try {
-            const response = await fetch('/api/explain', {
+      const res = await fetch('http://127.0.0.1:5000/ask', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ topic }),
+        body: JSON.stringify({ prompt }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setExplanation(data.explanation);
-      } else {
-        setExplanation(`Error: ${data.error}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Something went wrong');
       }
-    } catch (error) {
-      setExplanation(`Error: ${error.message}`);
+
+      const data = await res.json();
+      setResponse(data.response);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(explanation);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>AI Learning Assistant</h1>
-        <p className="subtitle">Enter a topic you want to learn about</p>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="e.g., 'Quantum Computing'"
-            required
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? <div className="loader" /> : 'Explain'}
-          </button>
-        </form>
-        {explanation && (
-          <div className="explanation">
-            <div className="explanation-header">
-              <h2>Explanation</h2>
-              <button onClick={handleCopy} className="copy-btn">
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-            <ReactMarkdown
-              components={{
-                code({node, inline, className, children, ...props}) {
-                  const match = /language-(\w+)/.exec(className || '')
-                  return !inline && match ? (
-                    <SyntaxHighlighter style={a11yDark} language={match[1]} PreTag="div" {...props}>
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
-                  ) : (
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  )
-                }
-              }}
-            >
-              {explanation}
-            </ReactMarkdown>
-          </div>
-        )}
+    <div className="App d-flex flex-column min-vh-100 bg-light">
+      <header className="App-header bg-primary text-white p-4 shadow-sm">
+        <h1 className="display-4">AI Learning Assistant</h1>
       </header>
+
+      <main className="flex-grow-1 container my-5">
+        <div className="card shadow-lg p-4 mb-5 bg-white rounded">
+          <div className="card-body">
+            <h2 className="card-title text-center mb-4 text-primary">Ask Me Anything!</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group mb-3">
+                <label htmlFor="promptInput" className="form-label visually-hidden">Enter your topic or question:</label>
+                <textarea
+                  className="form-control form-control-lg"
+                  id="promptInput"
+                  rows="3"
+                  placeholder="e.g., Explain quantum physics simply, Summarize the history of AI, What is the capital of France?"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  disabled={loading}
+                ></textarea>
+              </div>
+              <div className="d-grid gap-2">
+                <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Thinking...
+                    </>
+                  ) : (
+                    'Get Answer'
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {error && (
+              <div className="alert alert-danger mt-4" role="alert">
+                Error: {error}
+              </div>
+            )}
+
+            {response && (
+              <div className="response-container">
+                <h3 className="text-primary mb-3">Groq Response:</h3>
+                <p className="lead text-break">{response}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <footer className="App-footer bg-dark text-white p-3 text-center">
+        <p className="mb-0">&copy; 2023 AI Learning Assistant. Powered by Groq.</p>
+      </footer>
     </div>
   );
 }
