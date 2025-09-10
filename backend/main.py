@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import AsyncGroq
 from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
@@ -12,7 +13,7 @@ app = FastAPI()
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-        allow_origins=["*"],  # Allows the React app to make requests
+    allow_origins=["*"],  # Allows the React app to make requests
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,10 +36,6 @@ async def ask_groq(prompt: str, api_key: str, model="llama3-8b-8192") -> str:
     )
     return response.choices[0].message.content
 
-@app.get("/")
-async def root():
-    return {"message": "AI Learning Assistant Backend is running"}
-
 @app.post("/api/explain")
 async def explain_topic(topic: Topic):
     api_key = os.getenv("GROQ_API_KEY")
@@ -48,6 +45,8 @@ async def explain_topic(topic: Topic):
     prompt = f"Explain the topic: {topic.topic}. Please format the explanation in Markdown, using headings, bullet points, and bold text to structure the information for better readability."
     explanation = await ask_groq(prompt, api_key)
     return {"explanation": explanation}
+
+app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
