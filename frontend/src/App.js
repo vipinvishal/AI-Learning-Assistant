@@ -17,7 +17,7 @@ function App() {
     setCopied(false);
 
     try {
-      const response = await fetch('http://localhost:8000/api/explain', {
+            const response = await fetch('/api/explain', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
