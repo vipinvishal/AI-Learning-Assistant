@@ -24,7 +24,7 @@ class Topic(BaseModel):
 def get_groq_client(api_key):
     return AsyncGroq(api_key=api_key)
 
-async def ask_groq(prompt: str, api_key: str, model="llama-3.3-70b-versatile") -> str:
+async def ask_groq(prompt: str, api_key: str, model="llama3-8b-8192") -> str:
     client = get_groq_client(api_key)
     response = await client.chat.completions.create(
         model=model,
@@ -47,4 +47,5 @@ async def explain_topic(topic: Topic):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
