@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import AsyncGroq
@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 load_dotenv()
 
 app = FastAPI()
+router = APIRouter()
 
 # CORS middleware
 app.add_middleware(
@@ -36,7 +37,7 @@ async def ask_groq(prompt: str, api_key: str, model="llama3-8b-8192") -> str:
     )
     return response.choices[0].message.content
 
-@app.post("/api/explain")
+@router.post("/explain")
 async def explain_topic(topic: Topic):
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
@@ -46,6 +47,7 @@ async def explain_topic(topic: Topic):
     explanation = await ask_groq(prompt, api_key)
     return {"explanation": explanation}
 
+app.include_router(router, prefix="/api")
 app.mount("/", StaticFiles(directory="frontend/build", html=True), name="static")
 
 if __name__ == "__main__":
