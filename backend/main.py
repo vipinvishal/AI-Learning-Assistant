@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import AsyncGroq
 from dotenv import load_dotenv
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 
 load_dotenv()
 
@@ -48,7 +48,12 @@ async def explain_topic(topic: Topic):
     return {"explanation": explanation}
 
 app.include_router(router, prefix="/api")
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="static")
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    with open("index.html", "r") as f:
+        html_content = f.read()
+    return html_content
 
 if __name__ == "__main__":
     import uvicorn
